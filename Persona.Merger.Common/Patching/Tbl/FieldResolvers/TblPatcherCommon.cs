@@ -26,6 +26,17 @@ internal class TblPatcherCommon
 
         return segments;
     }
+    internal static unsafe Memory<byte>[] ConvertSegmentsToMemoryGeneric(int segmentCount, PointerLengthTuple* originalSegments, byte* tblData, byte[] tblDataArr)
+    {
+        var segments = new Memory<byte>[segmentCount];
+        for (int x = 0; x < segmentCount; x++)
+        {
+            ref var originalSegment = ref originalSegments[x];
+            segments[x] = new Memory<byte>(tblDataArr, 0, originalSegment.Length);
+        }
+
+        return segments;
+    }
     
     /// <summary>
     /// Applies a given list of table patches to the current file's TBL segments.

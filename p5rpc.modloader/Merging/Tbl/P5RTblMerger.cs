@@ -41,7 +41,8 @@ internal class P5RTblMerger : IFileMerger
             PatchTbl(pathToFileMap, @"R2\BATTLE\TABLE\AICALC.TBL", TblType.AiCalc, cpks),
             PatchTbl(pathToFileMap, @"R2\BATTLE\TABLE\VISUAL.TBL", TblType.Visual, cpks),
             PatchTbl(pathToFileMap, @"R2\BATTLE\TABLE\NAME.TBL", TblType.Name, cpks),
-            PatchTbl(pathToFileMap, @"R2\BATTLE\TABLE\UNIT.TBL", TblType.Unit, cpks)
+            PatchTbl(pathToFileMap, @"R2\BATTLE\TABLE\UNIT.TBL", TblType.Unit, cpks),
+            PatchGeneric(pathToFileMap, @"R2\INIT\SHDPERSONAENEMY.PDD", TblType.Exist, cpks)
         };
 
         Task.WhenAll(tasks.Select(x => x.AsTask())).Wait();
@@ -115,6 +116,61 @@ internal class P5RTblMerger : IFileMerger
             patches.Add(patcher.GeneratePatch(await File.ReadAllBytesAsync(candidates[x].FullPath)));
 
         var patched = patcher.Apply(patches);
+        return patched;
+    }
+
+    private async ValueTask PatchGeneric(Dictionary<string, List<ICriFsRedirectorApi.BindFileInfo>> pathToFileMap,
+        string tblPath, TblType type, string[] cpks)
+    {
+        if (!pathToFileMap.TryGetValue(tblPath, out var candidates))
+            return;
+
+        var pathInCpk = RemoveR2Prefix(tblPath);
+        if (!_utils.TryFindFileInAnyCpk(pathInCpk, cpks, out var cpkPath, out var cpkEntry, out var fileIndex))
+        {
+            _logger.Warning("Unable to find TBL in any CPK {0}", pathInCpk);
+            return;
+        }
+
+        // Build cache key
+        var cacheKey = GetCacheKeyAndSources(tblPath, candidates, out var sources);
+        if (_mergedFileCache.TryGet(cacheKey, sources, out var cachedFilePath))
+        {
+            _logger.Info("Loading Merged TBL {0} from Cache ({1})", tblPath, cachedFilePath);
+            _utils.ReplaceFileInBinderInput(pathToFileMap, tblPath, cachedFilePath);
+            return;
+        }
+
+        // Else Merge our Data
+        // First we extract.
+        await Task.Run(async () =>
+        {
+            _logger.Info("Merging {0} with key {1}.", tblPath, cacheKey);
+            await using var cpkStream =
+                new FileStream(cpkPath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+            using var reader = _criFsApi.GetCriFsLib().CreateCpkReader(cpkStream, false);
+            using var extractedTable = reader.ExtractFile(cpkEntry.Files[fileIndex].File);
+
+            // Then we merge
+            byte[] patched;
+            patched = await PatchTableGeneric(type, extractedTable, candidates);
+
+            // Then we store in cache.
+            var item = await _mergedFileCache.AddAsync(cacheKey, sources, patched);
+            _utils.ReplaceFileInBinderInput(pathToFileMap, tblPath,
+                Path.Combine(_mergedFileCache.CacheFolder, item.RelativePath));
+            _logger.Info("Merge {0} Complete. Cached to {1}.", tblPath, item.RelativePath);
+        });
+    }
+    private static async Task<byte[]> PatchTableGeneric(TblType type, ArrayRental extractedTable,
+        List<ICriFsRedirectorApi.BindFileInfo> candidates)
+    {
+        var patcher = new P5RTblPatcher(extractedTable.Span.ToArray(), type);
+        var patches = new List<TblPatch>(candidates.Count);
+        for (var x = 0; x < candidates.Count; x++)
+            patches.Add(patcher.GeneratePatchGeneric(await File.ReadAllBytesAsync(candidates[x].FullPath)));
+
+        var patched = patcher.ApplyGeneric(patches);
         return patched;
     }
 }

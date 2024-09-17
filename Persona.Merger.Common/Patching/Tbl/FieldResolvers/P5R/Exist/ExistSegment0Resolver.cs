@@ -6,10 +6,9 @@ public struct ExistSegment0Resolver : IEncoderFieldResolver
 {
     public bool Resolve(nuint offset, out int moveBy, out int length)
     {
-        // All data are u16s.
-        var twoByteAligned = offset / 2 * 2;
-        moveBy = (int)(offset - twoByteAligned);
-        length = 2;
-        return true;
+        // Unknown data
+        moveBy = 0;
+        length = 1;
+        return false;
     }
 }

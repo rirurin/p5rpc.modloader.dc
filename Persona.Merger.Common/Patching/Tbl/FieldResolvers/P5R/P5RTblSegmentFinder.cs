@@ -39,6 +39,20 @@ public unsafe struct P5RTblSegmentFinder
         }
     }
 
+    public static void PopulateGeneric(byte* tblPointer, int length, PointerLengthTuple* segments)
+    {
+        int currentSegmentNo = 0;
+        var currentPtr = tblPointer;
+        while (currentSegmentNo < 1)
+        {
+            ref var currentSegment = ref segments[currentSegmentNo];
+            currentSegment.Pointer = currentPtr;
+            currentSegment.Length = length;
+            currentPtr += Mathematics.RoundUp(currentSegment.Length + 4, TblSegmentAlignment);
+            currentSegmentNo++;
+        }
+    }
+
     /// <summary>
     /// Returns the segment count for a given table type.
     /// </summary>
