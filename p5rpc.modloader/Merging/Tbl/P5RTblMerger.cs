@@ -4,6 +4,7 @@ using FileEmulationFramework.Lib.Utilities;
 using Persona.Merger.Cache;
 using Persona.Merger.Patching.Tbl;
 using Persona.Merger.Patching.Tbl.FieldResolvers.P5R;
+using Persona.Merger.Patching.Tbl.FieldResolvers.Generic;
 using Persona.Merger.Patching.Tbl.FieldResolvers.P5R.Name;
 using static p5rpc.modloader.Merging.MergeUtils;
 
@@ -42,7 +43,7 @@ internal class P5RTblMerger : IFileMerger
             PatchTbl(pathToFileMap, @"R2\BATTLE\TABLE\VISUAL.TBL", TblType.Visual, cpks),
             PatchTbl(pathToFileMap, @"R2\BATTLE\TABLE\NAME.TBL", TblType.Name, cpks),
             PatchTbl(pathToFileMap, @"R2\BATTLE\TABLE\UNIT.TBL", TblType.Unit, cpks),
-            PatchGeneric(pathToFileMap, @"R2\INIT\SHDPERSONAENEMY.PDD", TblType.Exist, cpks, 4)
+            PatchAnyFile(pathToFileMap, @"R2\INIT\SHDPERSONAENEMY.PDD", TblType.Exist, cpks, 4)
         };
 
         Task.WhenAll(tasks.Select(x => x.AsTask())).Wait();
@@ -119,7 +120,7 @@ internal class P5RTblMerger : IFileMerger
         return patched;
     }
 
-    private async ValueTask PatchGeneric(Dictionary<string, List<ICriFsRedirectorApi.BindFileInfo>> pathToFileMap,
+    private async ValueTask PatchAnyFile(Dictionary<string, List<ICriFsRedirectorApi.BindFileInfo>> pathToFileMap,
         string tblPath, TblType type, string[] cpks, int ResolverSize)
     {
         if (!pathToFileMap.TryGetValue(tblPath, out var candidates))
@@ -153,7 +154,7 @@ internal class P5RTblMerger : IFileMerger
 
             // Then we merge
             byte[] patched;
-            patched = await PatchGeneric(extractedTable, candidates, ResolverSize);
+            patched = await PatchAny(extractedTable, candidates, ResolverSize);
 
             // Then we store in cache.
             var item = await _mergedFileCache.AddAsync(cacheKey, sources, patched);
@@ -162,10 +163,11 @@ internal class P5RTblMerger : IFileMerger
             _logger.Info("Merge {0} Complete. Cached to {1}.", tblPath, item.RelativePath);
         });
     }
-    private static async Task<byte[]> PatchGeneric(ArrayRental extractedTable,
+
+    private static async Task<byte[]> PatchAny(ArrayRental extractedTable,
         List<ICriFsRedirectorApi.BindFileInfo> candidates, int ResolverSize)
     {
-        var patcher = new P5RTblPatcher(extractedTable.Span.ToArray(), TblType.Exist);
+        var patcher = new GenericPatcher(extractedTable.Span.ToArray());
         var patches = new List<TblPatch>(candidates.Count);
         for (var x = 0; x < candidates.Count; x++)
             patches.Add(patcher.GeneratePatchGeneric(await File.ReadAllBytesAsync(candidates[x].FullPath), ResolverSize));

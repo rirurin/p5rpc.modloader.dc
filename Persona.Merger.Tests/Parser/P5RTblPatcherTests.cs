@@ -1,5 +1,6 @@
 using Persona.Merger.Patching.Tbl;
 using Persona.Merger.Patching.Tbl.FieldResolvers.P5R;
+using Persona.Merger.Patching.Tbl.FieldResolvers.Generic;
 
 namespace Persona.Merger.Tests.Parser;
 
@@ -47,7 +48,7 @@ public class P5RTblPatcherTests
         var after = File.ReadAllBytes(P5RAssets.PDDAfter);
         var after2 = File.ReadAllBytes(P5RAssets.PDDAfter2);
         var after3 = File.ReadAllBytes(P5RAssets.PDDAfter3);
-        var patcher = new P5RTblPatcher(original, TblType.Exist);
+        var patcher = new GenericPatcher(original);
         patches.Add(patcher.GeneratePatchGeneric(after, 4));
         patches.Add(patcher.GeneratePatchGeneric(after2, 4));
         var patched = patcher.ApplyGeneric(patches);
