@@ -43,7 +43,18 @@ internal class P5RTblMerger : IFileMerger
             PatchTbl(pathToFileMap, @"R2\BATTLE\TABLE\VISUAL.TBL", TblType.Visual, cpks),
             PatchTbl(pathToFileMap, @"R2\BATTLE\TABLE\NAME.TBL", TblType.Name, cpks),
             PatchTbl(pathToFileMap, @"R2\BATTLE\TABLE\UNIT.TBL", TblType.Unit, cpks),
-            PatchAnyFile(pathToFileMap, @"R2\INIT\SHDPERSONAENEMY.PDD", TblType.Exist, cpks, 4)
+            PatchAnyFile(pathToFileMap, @"R2\CALENDAR\CLDWEATHER.BIN", 1, cpks),
+            PatchAnyFile(pathToFileMap, @"R2\RESOURCE\RESRCNPCEXIST.BIN", 1, cpks),
+            PatchAnyFile(pathToFileMap, @"R2\EVENT\EVTDATEOFFTABLE.BIN", 2, cpks),
+            PatchAnyFile(pathToFileMap, @"R2\EVENT\EVTDATETABLE.BIN", 2, cpks),
+            PatchAnyFile(pathToFileMap, @"R2\EVENT\EVTDDDECOTABLE.BIN", 2, cpks),
+            PatchAnyFile(pathToFileMap, @"R2\EVENT\EVTFADEOUTTABLE.BIN", 2, cpks),
+            PatchAnyFile(pathToFileMap, @"R2\INIT\PMCHATINVITE365TBL.DAT", 2, cpks),
+            PatchAnyFile(pathToFileMap, @"R2\RESOURCE\RESRCNPCTBL.BIN", 2, cpks),
+            PatchAnyFile(pathToFileMap, @"R2\BUSTUP\DATA\BUSTUP_PARAM.DAT", 4, cpks),
+            PatchAnyFile(pathToFileMap, @"R2\FONT\ASSIST\MSGASSISTBUSTUPPARAM.DAT", 4, cpks),
+            PatchAnyFile(pathToFileMap, @"R2\INIT\SHDPERSONA.PDD", 4, cpks),
+            PatchAnyFile(pathToFileMap, @"R2\INIT\SHDPERSONAENEMY.PDD", 4, cpks)
         };
 
         Task.WhenAll(tasks.Select(x => x.AsTask())).Wait();
@@ -121,7 +132,7 @@ internal class P5RTblMerger : IFileMerger
     }
 
     private async ValueTask PatchAnyFile(Dictionary<string, List<ICriFsRedirectorApi.BindFileInfo>> pathToFileMap,
-        string tblPath, TblType type, string[] cpks, int ResolverSize)
+        string tblPath, int ResolverSize, string[] cpks)
     {
         if (!pathToFileMap.TryGetValue(tblPath, out var candidates))
             return;
