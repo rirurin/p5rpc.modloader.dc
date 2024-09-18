@@ -138,7 +138,7 @@ public struct P5RTblPatcher
         fixed (byte* tblData = &TblData[0])
         {
             var patch = new TblPatch();
-            var segmentCount = P5RTblSegmentFinder.GetSegmentCount(TableType);
+            var segmentCount = 1;
             var originalSegments = stackalloc PointerLengthTuple[segmentCount]; // using pointer to elide bounds checks below
             var newSegments = stackalloc PointerLengthTuple[segmentCount];
             P5RTblSegmentFinder.PopulateGeneric(tblData, TblData.Length, originalSegments);

@@ -32,7 +32,7 @@ internal class TblPatcherCommon
         for (int x = 0; x < segmentCount; x++)
         {
             ref var originalSegment = ref originalSegments[x];
-            segments[x] = new Memory<byte>(tblDataArr, 0, originalSegment.Length);
+            segments[x] = new Memory<byte>(tblDataArr, 0, tblDataArr.Length);
         }
 
         return segments;
