@@ -1,8 +1,8 @@
-using Sewer56.StructuredDiff.Interfaces;
+﻿using Sewer56.StructuredDiff.Interfaces;
 
-namespace Persona.Merger.Patching.Tbl.FieldResolvers.P5R.Exist;
+namespace Persona.Merger.Patching.Tbl.FieldResolvers;
 
-public struct ExistSegment0Resolver : IEncoderFieldResolver
+public struct ShortResolver : IEncoderFieldResolver
 {
     public bool Resolve(nuint offset, out int moveBy, out int length)
     {

@@ -19,4 +19,9 @@ public static class P5RAssets
     public static readonly string ItemBefore  = Path.Combine(AssetsFolder, "Item", "Before", "ITEM.TBL");
     public static readonly string ItemAfter   = Path.Combine(AssetsFolder, "Item", "After", "ITEM.TBL");
     public static readonly string ItemExtend  = Path.Combine(AssetsFolder, "Item", "Extend", "ITEM.TBL"); // Miku?
+
+    public static readonly string PDDBefore = Path.Combine(AssetsFolder, "PDD", "Before", "SHDPERSONAENEMY.PDD");
+    public static readonly string PDDAfter = Path.Combine(AssetsFolder, "PDD", "After", "SHDPERSONAENEMY.PDD");
+    public static readonly string PDDAfter2 = Path.Combine(AssetsFolder, "PDD", "After2", "SHDPERSONAENEMY.PDD");
+    public static readonly string PDDAfter3 = Path.Combine(AssetsFolder, "PDD", "After3", "SHDPERSONAENEMY.PDD");
 }

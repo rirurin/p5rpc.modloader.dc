@@ -42,7 +42,7 @@ internal class P5RTblMerger : IFileMerger
             PatchTbl(pathToFileMap, @"R2\BATTLE\TABLE\VISUAL.TBL", TblType.Visual, cpks),
             PatchTbl(pathToFileMap, @"R2\BATTLE\TABLE\NAME.TBL", TblType.Name, cpks),
             PatchTbl(pathToFileMap, @"R2\BATTLE\TABLE\UNIT.TBL", TblType.Unit, cpks),
-            PatchGeneric(pathToFileMap, @"R2\INIT\SHDPERSONAENEMY.PDD", TblType.Exist, cpks)
+            PatchGeneric(pathToFileMap, @"R2\INIT\SHDPERSONAENEMY.PDD", TblType.Exist, cpks, 4)
         };
 
         Task.WhenAll(tasks.Select(x => x.AsTask())).Wait();
@@ -120,7 +120,7 @@ internal class P5RTblMerger : IFileMerger
     }
 
     private async ValueTask PatchGeneric(Dictionary<string, List<ICriFsRedirectorApi.BindFileInfo>> pathToFileMap,
-        string tblPath, TblType type, string[] cpks)
+        string tblPath, TblType type, string[] cpks, int ResolverSize)
     {
         if (!pathToFileMap.TryGetValue(tblPath, out var candidates))
             return;
@@ -153,7 +153,7 @@ internal class P5RTblMerger : IFileMerger
 
             // Then we merge
             byte[] patched;
-            patched = await PatchTableGeneric(type, extractedTable, candidates);
+            patched = await PatchGeneric(extractedTable, candidates, ResolverSize);
 
             // Then we store in cache.
             var item = await _mergedFileCache.AddAsync(cacheKey, sources, patched);
@@ -162,13 +162,13 @@ internal class P5RTblMerger : IFileMerger
             _logger.Info("Merge {0} Complete. Cached to {1}.", tblPath, item.RelativePath);
         });
     }
-    private static async Task<byte[]> PatchTableGeneric(TblType type, ArrayRental extractedTable,
-        List<ICriFsRedirectorApi.BindFileInfo> candidates)
+    private static async Task<byte[]> PatchGeneric(ArrayRental extractedTable,
+        List<ICriFsRedirectorApi.BindFileInfo> candidates, int ResolverSize)
     {
-        var patcher = new P5RTblPatcher(extractedTable.Span.ToArray(), type);
+        var patcher = new P5RTblPatcher(extractedTable.Span.ToArray(), TblType.Exist);
         var patches = new List<TblPatch>(candidates.Count);
         for (var x = 0; x < candidates.Count; x++)
-            patches.Add(patcher.GeneratePatchGeneric(await File.ReadAllBytesAsync(candidates[x].FullPath)));
+            patches.Add(patcher.GeneratePatchGeneric(await File.ReadAllBytesAsync(candidates[x].FullPath), ResolverSize));
 
         var patched = patcher.ApplyGeneric(patches);
         return patched;

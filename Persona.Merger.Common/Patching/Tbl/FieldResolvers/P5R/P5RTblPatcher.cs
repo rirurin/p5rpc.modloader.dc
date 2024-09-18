@@ -132,19 +132,21 @@ public struct P5RTblPatcher
         }
     }
 
-    public unsafe TblPatch GeneratePatchGeneric(byte[] otherTbl)
+    public unsafe TblPatch GeneratePatchGeneric(byte[] otherTbl, int ResolverSize)
     {
         fixed (byte* otherTblData = &otherTbl[0])
         fixed (byte* tblData = &TblData[0])
         {
             var patch = new TblPatch();
-            var segmentCount = 1;
-            var originalSegments = stackalloc PointerLengthTuple[segmentCount]; // using pointer to elide bounds checks below
-            var newSegments = stackalloc PointerLengthTuple[segmentCount];
+            
+            var originalSegments = stackalloc PointerLengthTuple[1]; // using pointer to elide bounds checks below
+            var newSegments = stackalloc PointerLengthTuple[1];
             P5RTblSegmentFinder.PopulateGeneric(tblData, TblData.Length, originalSegments);
             P5RTblSegmentFinder.PopulateGeneric(otherTblData, otherTbl.Length, newSegments);
 
-            DiffSegment(patch, newSegments[0], originalSegments[0], new ExistSegment0Resolver());
+            if (ResolverSize == 2) DiffSegment(patch, newSegments[0], originalSegments[0], new ShortResolver());
+            else if (ResolverSize == 4) DiffSegment(patch, newSegments[0], originalSegments[0], new IntResolver());
+            else DiffSegment(patch, newSegments[0], originalSegments[0], new ByteResolver());
 
             return patch;
         }
@@ -207,7 +209,7 @@ public struct P5RTblPatcher
             // Produce new file.
             var fileSize = 0;
             foreach (var segment in segments)
-                fileSize += Mathematics.RoundUp(4 + segment.Length, P5RTblSegmentFinder.TblSegmentAlignment);
+                fileSize += segment.Length;
 
             var result = GC.AllocateUninitializedArray<byte>(fileSize);
             using var memoryStream = new ExtendedMemoryStream(result, true);

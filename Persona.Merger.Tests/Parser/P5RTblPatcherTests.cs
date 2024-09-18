@@ -37,4 +37,21 @@ public class P5RTblPatcherTests
         var patched = patcher.Apply(new List<TblPatch>() { patch });
         Assert.Equal(after, patched);
     }
+    
+    [Fact]
+    public void PatchTbl_Generic()
+    {
+        var patches = new List<TblPatch>();
+
+        var original = File.ReadAllBytes(P5RAssets.PDDBefore);
+        var after = File.ReadAllBytes(P5RAssets.PDDAfter);
+        var after2 = File.ReadAllBytes(P5RAssets.PDDAfter2);
+        var after3 = File.ReadAllBytes(P5RAssets.PDDAfter3);
+        var patcher = new P5RTblPatcher(original, TblType.Exist);
+        patches.Add(patcher.GeneratePatchGeneric(after, 4));
+        patches.Add(patcher.GeneratePatchGeneric(after2, 4));
+        var patched = patcher.ApplyGeneric(patches);
+
+        Assert.Equal(patched, after3);
+    }
 }
