@@ -43,6 +43,8 @@ internal class TblPatcherCommon
     /// </summary>
     internal static unsafe void ApplyPatch(List<TblPatch> patches, int x, Memory<byte>[] segments)
     {
+        patches.Sort((a, b) => a.SegmentDiffs[x].LengthAfterPatch.CompareTo(b.SegmentDiffs[x].LengthAfterPatch));
+
         int newLength = 0;
 
         foreach (var patch in CollectionsMarshal.AsSpan(patches))
