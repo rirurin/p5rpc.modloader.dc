@@ -43,9 +43,19 @@ internal class TblPatcherCommon
     /// </summary>
     internal static unsafe void ApplyPatch(List<TblPatch> patches, int x, Memory<byte>[] segments)
     {
+        int newLength = 0;
+
         foreach (var patch in CollectionsMarshal.AsSpan(patches))
         {
-            var destination = GC.AllocateUninitializedArray<byte>(Math.Max(patch.SegmentDiffs[x].LengthAfterPatch, segments[x].Length));
+            if (patch.SegmentDiffs[x].LengthAfterPatch > newLength)
+            {
+                newLength = patch.SegmentDiffs[x].LengthAfterPatch;
+            }
+        }
+
+        foreach (var patch in CollectionsMarshal.AsSpan(patches))
+        {
+            var destination = GC.AllocateUninitializedArray<byte>(Math.Max(newLength, segments[x].Length));
             var patchDiff = patch.SegmentDiffs[x].Data;
 
             fixed (byte* destinationPtr = &destination[0])
