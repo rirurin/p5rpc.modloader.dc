@@ -65,12 +65,12 @@ public class P5RTblPatcherTests
         var after = File.ReadAllBytes(P5RAssets.VisualAfter);
         var after2 = File.ReadAllBytes(P5RAssets.VisualAfter2);
         var after3 = File.ReadAllBytes(P5RAssets.VisualAfter3);
-        var patcher = new GenericPatcher(original);
-        patches.Add(patcher.GeneratePatchGeneric(after, 4));
-        patches.Add(patcher.GeneratePatchGeneric(after2, 4));
-        var patched = patcher.ApplyGeneric(patches);
+        var patcher = new P5RTblPatcher(original, TblType.Visual);
+        patches.Add(patcher.GeneratePatch(after));
+        patches.Add(patcher.GeneratePatch(after2));
+        var patched = patcher.Apply(patches);
 
-        File.WriteAllBytes("D:\\Game Modding\\R2\\Mods\\p5rpc.modloader\\Cache\\P5R\\VISUAL.TBL", patched);
+        File.WriteAllBytes("D:\\Game Modding\\R2\\Loader\\VISUAL.TBL", patched);
 
         Assert.Equal(patched, after3);
     }
