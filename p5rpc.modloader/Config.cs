@@ -40,6 +40,9 @@ public class Config : Configurable<Config>
     
     [DisplayName("Persona 3 Portable Config")]
     public ConfigP3P P3PConfig { get; set; } = new();
+    
+    [DisplayName("Metaphor: ReFantazio Config")]
+    public ConfigMRF MRFConfig { get; set; } = new();
 
     /// <summary>
     /// Gets whether the game should render in background.
@@ -51,6 +54,7 @@ public class Config : Configurable<Config>
             Game.P4G => P4GConfig.RenderInBackground,
             Game.P5R => P5RConfig.RenderInBackground,
             Game.P3P => P3PConfig.RenderInBackground,
+            Game.MRF => MRFConfig.RenderInBackground,
             _ => false
         };
     }

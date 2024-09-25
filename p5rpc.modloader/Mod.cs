@@ -89,7 +89,9 @@ public partial class Mod : ModBase // <= Do not Remove.
         else if (fileName.StartsWith("p4g", StringComparison.OrdinalIgnoreCase) || fileName.StartsWith("p4pc_DT_mc", StringComparison.OrdinalIgnoreCase))
             Game = Game.P4G;        
         else if (fileName.StartsWith("p3p", StringComparison.OrdinalIgnoreCase))
-            Game = Game.P3P;
+            Game = Game.P3P;        
+        else if (fileName.StartsWith("metaphor", StringComparison.OrdinalIgnoreCase))
+            Game = Game.MRF;
         else
             _logger.Warning("Executable name does not match any known game. Will use Persona 5 Royal profile.\n" +
                             "Consider renaming your EXE back to something that starts with 'p4g' or 'p4pc_DT_mc' or 'p5r'.");
@@ -107,24 +109,41 @@ public partial class Mod : ModBase // <= Do not Remove.
         modLoader.GetController<IBfEmulator>().TryGetTarget(out _bfEmulator!);
         modLoader.GetController<IBmdEmulator>().TryGetTarget(out _bmdEmulator!);
         modLoader.GetController<ISpdEmulator>().TryGetTarget(out _spdEmulator!);
-        _criFsApi.AddBindCallback(OnBind);
         
         if (Game == Game.P5R)
         {
             Patches.P5R.SkipIntro.Activate(patchContext);
             var criLib = _criFsApi.GetCriFsLib();
             criLib.SetDefaultEncryptionFunction(criLib.GetKnownDecryptionFunction(KnownDecryptionFunction.P5R)!);
+            _criFsApi.AddBindCallback(OnBind);
         }
         else if (Game == Game.P4G)
         {
             Patches.P4G.SkipIntro.Activate(patchContext);
+            _criFsApi.AddBindCallback(OnBind);
         }
         else if (Game == Game.P3P)
         {
             Patches.P3P.SkipIntro.Activate(patchContext);
             _criFsApi.SetMaxFilesMultiplier(6); // P3P uses 3 binders.
+            _criFsApi.AddBindCallback(OnBind);
         }
-        
+        else if (Game == Game.MRF)
+        {
+            Patches.MRF.SkipIntro.Activate(patchContext);
+
+            var criFsController = modLoader.GetController<ICriFsRedirectorApi>();
+            if (criFsController == null || !criFsController.TryGetTarget(out var criFsApi))
+            {
+                _logger.Error("Unable to load CriFS V2 Library Hooks!");
+                return;
+            }
+            else criFsApi.AddProbingPath("MFEssentials");
+
+            _criFsApi.AddBindCallback(OnBindMFR);
+            // Metaphor ReFantazio only has 1 CPK
+        }
+
         // Common Patches
         NoPauseOnFocusLoss.Activate(patchContext);
     }
@@ -161,5 +180,6 @@ public enum Game
 {
     P4G,
     P5R,
-    P3P
+    P3P,
+    MRF
 }

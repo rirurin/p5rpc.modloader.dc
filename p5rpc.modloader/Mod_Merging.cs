@@ -51,6 +51,33 @@ public partial class Mod
         _mergedFileCache.RemoveExpiredItems();
         _ = _mergedFileCache.ToPathAsync();
     }
+    
+    private void OnBindMFR(ICriFsRedirectorApi.BindContext context)
+    {
+        // Wait for cache to init first.
+        _createMergedFileCacheTask.Wait();
+        
+        // File merging
+        var watch = Stopwatch.StartNew();
+        var cpks = _criFsApi.GetCpkFilesInGameDir();
+
+        var mergeUtils = new MergeUtils(_criFsApi);
+        List<IFileMerger> fileMergers = new()
+        {
+            new BfMerger(mergeUtils, _logger, _mergedFileCache, _criFsApi, _bfEmulator, _pakEmulator, Game),
+            new BmdMerger(mergeUtils, _logger, _mergedFileCache, _criFsApi, _bmdEmulator, _pakEmulator, Game),
+            new TblMerger(mergeUtils, _logger, _mergedFileCache, _criFsApi, _pakEmulator, Game),
+            new SpdMerger(mergeUtils, _logger, _mergedFileCache, _criFsApi, _spdEmulator, _pakEmulator),
+            new PakMerger(mergeUtils, _logger, _mergedFileCache, _criFsApi, _pakEmulator),
+        };
+        
+        foreach (var fileMerger in fileMergers)
+            fileMerger.Merge(cpks, context);
+
+        _logger.Info("Merging Completed in {0}ms", watch.ElapsedMilliseconds);
+        _mergedFileCache.RemoveExpiredItems();
+        _ = _mergedFileCache.ToPathAsync();
+    }
 
     private void ForceCpkFirst(string[] cpkFiles, Language language)
     {
