@@ -131,6 +131,7 @@ public partial class Mod : ModBase // <= Do not Remove.
         else if (Game == Game.MRF)
         {
             Patches.MRF.SkipIntro.Activate(patchContext);
+            Patches.MRF.Force4kAssets.Activate(patchContext);
 
             var criFsController = modLoader.GetController<ICriFsRedirectorApi>();
             if (criFsController == null || !criFsController.TryGetTarget(out var criFsApi))

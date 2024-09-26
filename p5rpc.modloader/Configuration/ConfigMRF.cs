@@ -11,4 +11,8 @@ public class ConfigMRF
     [DisplayName("Render In Background")]
     [DefaultValue(false)]
     public bool RenderInBackground { get; set; } = false;
+
+    [DisplayName("Force 4k Assets")]
+    [DefaultValue(false)]
+    public bool Force4k { get; set; } = false;
 }
